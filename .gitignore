@@ -1,0 +1,102 @@
+# =========================
+# Node modules
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Build folders
+# =========================
+dist/
+build/
+.next/
+out/
+coverage/
+
+# =========================
+# Logs
+# =========================
+logs
+*.log
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE / Editor files
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# TypeScript
+# =========================
+*.tsbuildinfo
+
+# =========================
+# Temporary files
+# =========================
+tmp/
+temp/
+
+# =========================
+# MongoDB / Database
+# =========================
+*.db
+*.sqlite
+
+# =========================
+# Uploads (if using multer etc.)
+# =========================
+uploads/
+public/uploads/
+
+# =========================
+# Firebase / Google creds
+# =========================
+firebase-debug.log
+*.firebase.json
+
+# =========================
+# Misc
+# =========================
+.cache/
+.parcel-cache/
+
+# =========================
+# Vite
+# =========================
+.vite/
+
+# =========================
+# Expo / React Native (if used)
+# =========================
+.expo/
+.expo-shared/
+
+# =========================
+# Testing
+# =========================
+jest.config.js
+coverage/
+
+# =========================
+# Docker
+# =========================
+Dockerfile.local
+docker-compose.override.yml
