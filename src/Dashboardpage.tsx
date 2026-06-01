@@ -11,6 +11,7 @@ import MonthlyTab from "./Monthlytab";
 import DailyTab from "./Dailytab";
 import { DryCleaningTab } from "./Drycleaningtab";
 import { SubAccountsTab } from "./Subaccountstab";
+import ResetPassword from "./Resetpassword"; 
 import { Menu, X } from "lucide-react";
 
 interface DashboardPageProps {
@@ -18,6 +19,9 @@ interface DashboardPageProps {
   user?: { firstName?: string };
   onLogout?: () => void;
 }
+
+// Tabs that fetch their own data or don't need the stats hook
+const STANDALONE_TABS = ["dryCleaning", "subAccounts", "daily", "resetPassword"];
 
 export default function DashboardPage({
   token,
@@ -230,15 +234,18 @@ export default function DashboardPage({
               minHeight: "100vh",
             }}
           >
-            {/* Tabs that fetch their own data */}
+            {/* ── Standalone tabs (manage their own data / no stats hook needed) ── */}
             {activeTab === "dryCleaning" && <DryCleaningTab token={token} />}
             {activeTab === "subAccounts" && <SubAccountsTab />}
-            {activeTab === "daily" && (
-              <DailyTab token={token} user={user} />
+            {activeTab === "daily" && <DailyTab token={token} user={user} />}
+
+            {/* ── Reset Password tab ── */}
+            {activeTab === "resetPassword" && (
+              <ResetPassword onBack={() => setActiveTab("overview")} />
             )}
 
-            {/* Tabs that depend on stats hook */}
-            {!["dryCleaning", "subAccounts", "daily"].includes(activeTab) &&
+            {/* ── Stats-dependent tabs ── */}
+            {!STANDALONE_TABS.includes(activeTab) &&
               (loading ? (
                 <Spinner />
               ) : error ? (
@@ -255,17 +262,10 @@ export default function DashboardPage({
 
                   {activeTab === "slots" && <SlotsTab data={data} />}
 
-                  {activeTab === "bookings" && (
-                    <BookingsTab data={data} />
-                  )}
+                  {activeTab === "bookings" && <BookingsTab data={data} />}
 
-                  {/* FIXED: Pass token to MonthlyTab */}
                   {activeTab === "monthly" && (
-                    <MonthlyTab
-                      data={data}
-                      token={token}
-                      user={user}
-                    />
+                    <MonthlyTab data={data} token={token} user={user} />
                   )}
                 </>
               ) : null)}

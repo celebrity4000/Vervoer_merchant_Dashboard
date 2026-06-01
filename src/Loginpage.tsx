@@ -190,14 +190,15 @@ export default function Loginpage({ onLogin }: LoginProps) {
   /* LOGIN — tries merchant first, then sub-acct */
   /* ─────────────────────────────────────────── */
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
+  e.preventDefault();
+  if (!validate()) return;
 
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    const trimmedEmail = email.trim();
+  const trimmedEmail = email.trim();
 
+  try {
     // ── 1. Try merchant login ──────────────────
     try {
       const res = await axiosInstance.post("/users/login", {
@@ -216,68 +217,59 @@ export default function Loginpage({ onLogin }: LoginProps) {
     } catch (merchantErr: unknown) {
       const status = (merchantErr as any)?.response?.status;
 
-      // Wrong password for a real merchant → stop here
       if (status === 401) {
         setError("Invalid email or password.");
-        setLoading(false);
         return;
       }
 
-      // 403 = unverified merchant account
       if (status === 403) {
         setError("Please verify your email before logging in.");
-        setLoading(false);
         return;
       }
 
-      // Only fall through to sub-account on 404 (email not a merchant)
       if (status !== 404) {
         setError(getErrorMessage(merchantErr));
-        setLoading(false);
         return;
       }
-      // 404 → email not found in merchant collection, try sub-account below
+      // 404 → fall through to sub-account
     }
 
     // ── 2. Fallback: try sub-account login ─────
-    // NOTE: Do NOT send userType here — the sub-account endpoint has its own
-    // schema and does NOT use the same loginUser handler.
     try {
-  const res = await axiosInstance.post("/merchants/sub-account/login", {
-  email: trimmedEmail,
-  password,
-});
+      const res = await axiosInstance.post("/merchants/sub-account/login", {
+        email: trimmedEmail,
+        password,
+      });
 
-  const token = res.data.data?.token ?? res.data.token;
-  const merchantId = res.data.data?.merchantId ?? res.data.merchantId;
+      const token = res.data.data?.token ?? res.data.token;
+      const merchantId = res.data.data?.merchantId ?? res.data.merchantId;
 
-  if (!token) throw new Error("Invalid response from server");
+      if (!token) throw new Error("Invalid response from server");
 
-  // Build a minimal user object from what the backend returns
-  // (sub-account login doesn't return a full user object)
-  const user = {
-    _id: merchantId,
-    email: trimmedEmail,
-    userType: "subAccount",
-  } as unknown as MerchantUser;
+      const user = {
+        _id: merchantId,
+        email: trimmedEmail,
+        userType: "subAccount",
+      } as unknown as MerchantUser;
 
-  onLogin(token, user);
-} catch (subErr: unknown) {
-  const subStatus = (subErr as any)?.response?.status;
+      onLogin(token, user);
+    } catch (subErr: unknown) {
+      const subStatus = (subErr as any)?.response?.status;
 
-  if (subStatus === 403) {
-    setError("Your sub-account has been deactivated. Contact the account owner.");
-  } else if (subStatus === 404) {
-    setError("No account found with this email.");
-  } else if (subStatus === 401) {
-    setError("Invalid email or password.");
-  } else {
-    setError(getErrorMessage(subErr));
+      if (subStatus === 403) {
+        setError("Your sub-account has been deactivated. Contact the account owner.");
+      } else if (subStatus === 404) {
+        setError("No account found with this email.");
+      } else if (subStatus === 401) {
+        setError("Invalid email or password.");
+      } else {
+        setError(getErrorMessage(subErr));
+      }
+    }
+  } finally {
+    setLoading(false); // ← single, guaranteed cleanup
   }
-} finally {
-  setLoading(false);
-}
-  };
+};
 
   return (
     <>
